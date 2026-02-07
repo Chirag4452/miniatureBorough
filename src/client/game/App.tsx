@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { useGame } from '../hooks/useGame';
 import {
   TILE_EMOJI,
@@ -94,33 +94,6 @@ export const App = () => {
     utcDate,
   } = useGame();
 
-  const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('miniature-borough-theme') as 'light' | 'dark' | null;
-    if (stored === 'light' || stored === 'dark') {
-      setTheme(stored);
-      document.documentElement.setAttribute('data-theme', stored);
-    } else {
-      setTheme(null);
-      document.documentElement.removeAttribute('data-theme');
-    }
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    const next =
-      theme === 'light'
-        ? 'dark'
-        : theme === 'dark'
-          ? 'light'
-          : document.documentElement.getAttribute('data-theme') === 'dark'
-            ? 'light'
-            : 'dark';
-    setTheme(next);
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('miniature-borough-theme', next);
-  }, [theme]);
-
   const selectedOption =
     state.selectedTileIndex !== null ? state.currentOptions[state.selectedTileIndex] : null;
   const validSet = selectedOption
@@ -153,12 +126,7 @@ export const App = () => {
   const handleCellLeave = useCallback(() => setHoverCell(null), [setHoverCell]);
 
   return (
-    <div
-      className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors"
-      style={{
-        colorScheme: theme === 'dark' ? 'dark' : theme === 'light' ? 'light' : undefined,
-      }}
-    >
+    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors">
       <header className="flex flex-wrap items-center justify-between gap-3 p-3 border-b border-[var(--color-border)]">
         <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
         <div className="flex items-center gap-4">
@@ -169,16 +137,8 @@ export const App = () => {
             Score: {state.score}
           </span>
           <span className="text-sm text-[var(--color-text-muted)]">
-            Turn {state.turn + 1}/{TOTAL_TURNS}
+            Turn {Math.min(state.turn + 1, TOTAL_TURNS)}/{TOTAL_TURNS}
           </span>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] hover:opacity-80 transition-opacity"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
         </div>
       </header>
 
@@ -236,34 +196,38 @@ export const App = () => {
           )}
         </div>
 
-        <section className="w-full max-w-md" aria-label="Current tile options">
-          <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">
-            Choose one
-          </h2>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <CurrentTileOption
-              option={state.currentOptions[0]}
-              isSelected={state.selectedTileIndex === 0}
-              onSelect={() => selectTile(0)}
-            />
-            <CurrentTileOption
-              option={state.currentOptions[1]}
-              isSelected={state.selectedTileIndex === 1}
-              onSelect={() => selectTile(1)}
-            />
-          </div>
-        </section>
+        {state.phase === 'playing' && (
+          <>
+            <section className="w-full max-w-md" aria-label="Current tile options">
+              <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">
+                Choose one
+              </h2>
+              <div className="flex gap-3 justify-center flex-wrap">
+                <CurrentTileOption
+                  option={state.currentOptions[0]}
+                  isSelected={state.selectedTileIndex === 0}
+                  onSelect={() => selectTile(0)}
+                />
+                <CurrentTileOption
+                  option={state.currentOptions[1]}
+                  isSelected={state.selectedTileIndex === 1}
+                  onSelect={() => selectTile(1)}
+                />
+              </div>
+            </section>
 
-        {state.phase === 'playing' && state.turn < TOTAL_TURNS - 1 && (
-          <section className="w-full max-w-md" aria-label="Next turn preview">
-            <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">
-              Next turn
-            </h2>
-            <div className="flex gap-3 justify-center flex-wrap">
-              <NextTilePreview option={state.nextOptions[0]} />
-              <NextTilePreview option={state.nextOptions[1]} />
-            </div>
-          </section>
+            {state.turn < TOTAL_TURNS - 1 && (
+              <section className="w-full max-w-md" aria-label="Next turn preview">
+                <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">
+                  Next turn
+                </h2>
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <NextTilePreview option={state.nextOptions[0]} />
+                  <NextTilePreview option={state.nextOptions[1]} />
+                </div>
+              </section>
+            )}
+          </>
         )}
 
         {state.phase === 'ended' && (

@@ -1,8 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import {
-  createDailyRng,
-  getUtcDateString,
-} from '../../shared/dailySeed';
+import { useCallback, useState } from 'react';
+import { createDailyRng, getUtcDateString } from '../../shared/dailySeed';
 import {
   createEmptyGrid,
   generateAllTurnOptions,
@@ -13,10 +10,13 @@ import {
 import type { GameState } from '../../shared/types/game';
 import { TOTAL_TURNS } from '../../shared/types/game';
 
-function getInitialState(): GameState {
+const ALL_TURN_OPTIONS = (() => {
   const rng = createDailyRng();
-  const allOptions = generateAllTurnOptions(rng);
-  const opts = allOptions[0];
+  return generateAllTurnOptions(rng);
+})();
+
+function getInitialState(): GameState {
+  const opts = ALL_TURN_OPTIONS[0];
   if (!opts) throw new Error('Failed to generate turn options');
   return {
     grid: createEmptyGrid(),
@@ -33,10 +33,7 @@ function getInitialState(): GameState {
 export function useGame() {
   const [state, setState] = useState<GameState>(getInitialState);
 
-  const allTurnOptions = useMemo(() => {
-    const rng = createDailyRng();
-    return generateAllTurnOptions(rng);
-  }, []);
+  const allTurnOptions = ALL_TURN_OPTIONS;
 
   const selectTile = useCallback((index: 0 | 1) => {
     setState((s) => ({
@@ -61,9 +58,10 @@ export function useGame() {
           r.map((cell, ci) => (ri === row && ci === col ? option.tile : cell))
         );
         const newTurn = s.turn + 1;
-        const nextOpts = newTurn < TOTAL_TURNS ? allTurnOptions[newTurn] : null;
-        const phase: GameState['phase'] = newTurn >= TOTAL_TURNS ? 'ended' : 'playing';
+        const isLastTurn = newTurn >= TOTAL_TURNS;
+        const phase: GameState['phase'] = isLastTurn ? 'ended' : 'playing';
         const score = computeScore(newGrid);
+        const nextOpts = !isLastTurn ? allTurnOptions[newTurn] : null;
 
         return {
           grid: newGrid,

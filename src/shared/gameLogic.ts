@@ -40,18 +40,16 @@ export function generateAllTurnOptions(rng: () => number): TurnOptions[] {
         constraint: randomConstraint(rng),
       },
     ];
-    const nextA: TileOption = {
-      tile: randomPlaceable(rng, false),
-      constraint: randomConstraint(rng),
-    };
-    const nextB: TileOption = {
-      tile: randomPlaceable(rng, false),
-      constraint: randomConstraint(rng),
-    };
     options.push({
       current,
-      next: [nextA, nextB],
+      next: [current[0], current[1]], 
     });
+  }
+
+  for (let t = 0; t < TOTAL_TURNS - 1; t++) {
+    const curr = options[t];
+    const nextTurn = options[t + 1];
+    if (curr && nextTurn) curr.next = [...nextTurn.current];
   }
 
   return options;
