@@ -3,11 +3,64 @@ import { useGame } from '../hooks/useGame';
 import {
   TILE_EMOJI,
   GRID_SIZE,
-  TOTAL_TURNS,
   type PlacementConstraint,
   type CellTile,
 } from '../../shared/types/game';
 import { clsx } from 'clsx';
+
+function RulesSection() {
+  return (
+    <div className="flex flex-nowrap items-start justify-between gap-4 text-sm">
+      <ul className="text-[var(--color-text-muted)] space-y-0.5 min-w-0 flex-1">
+        <li>
+          <span role="img" aria-hidden>⛰️</span> 1pt for each nearby 🌲.
+        </li>
+        <li>
+          <span role="img" aria-hidden>🌲</span> 1pt for each touching 🌲.
+        </li>
+        <li>
+          <span role="img" aria-hidden>🌾</span> 1pt for each touching 🟩.
+        </li>
+        <li>
+          <span role="img" aria-hidden>🏰</span> 1pt for each 🟩 on route to nearest 🏠.
+        </li>
+        <li>
+          <span role="img" aria-hidden>🏠</span> 1pt for unique nearby ⛰️🌲🌾🟩.
+        </li>
+      </ul>
+      <div className="flex flex-col gap-3 shrink-0 items-start">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs text-[var(--color-text-muted)]">nearby:</span>
+          <div className="grid grid-cols-3 gap-0.5 w-[36px]">
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div
+                key={i}
+                className={clsx(
+                  'w-2 h-2 rounded-sm',
+                  i === 4 ? 'bg-purple-400/80' : 'bg-green-600/80'
+                )}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs text-[var(--color-text-muted)]">touching:</span>
+          <div className="grid grid-cols-3 gap-0.5 w-[36px]">
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div
+                key={i}
+                className={clsx(
+                  'w-2 h-2 rounded-sm',
+                  i === 4 ? 'bg-purple-400/80' : [1, 3, 5, 7].includes(i) ? 'bg-green-600/80' : 'bg-gray-600/60'
+                )}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function PlacementIndicator({
   constraint,
@@ -73,16 +126,6 @@ function CurrentTileOption({
   );
 }
 
-function NextTilePreview({ option }: { option: { tile: string } }) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] opacity-75 min-h-[44px] px-3 py-2">
-      <span className="text-xl" role="img" aria-label={option.tile}>
-        {TILE_EMOJI[option.tile as CellTile]}
-      </span>
-    </div>
-  );
-}
-
 export const App = () => {
   const {
     state,
@@ -127,80 +170,21 @@ export const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors">
-      <header className="flex flex-wrap items-center justify-between gap-3 p-3 border-b border-[var(--color-border)]">
-        <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
+      <header className="relative flex flex-col gap-3 p-3">
+        <div className="flex items-center justify-center">
+          <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
+          <span className="absolute right-3 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
             {utcDate}
           </span>
-          <span className="font-mono font-semibold text-[var(--color-score)]">
-            Score: {state.score}
-          </span>
-          <span className="text-sm text-[var(--color-text-muted)]">
-            Turn {Math.min(state.turn + 1, TOTAL_TURNS)}/{TOTAL_TURNS}
-          </span>
         </div>
+        <RulesSection />
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-4 gap-6 overflow-auto">
-        {/* Grid */}
-        <div
-          className="grid gap-0.5 p-1 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-border)]"
-          style={{
-            gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(44px, 1fr))`,
-            gridTemplateRows: `repeat(${GRID_SIZE}, minmax(44px, 1fr))`,
-            maxWidth: 'min(95vw, 320px)',
-            maxHeight: 'min(95vw, 320px)',
-            aspectRatio: '1',
-          }}
-        >
-          {state.grid.map((row, r) =>
-            row.map((cell, c) => {
-              const key = `${r},${c}`;
-              const isValid = validSet?.has(key) ?? false;
-              const isHover = state.hoverCell?.[0] === r && state.hoverCell?.[1] === c;
-              const showGhost = isHover && selectedOption && cell === 'grass';
-
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  className={clsx(
-                    'relative flex items-center justify-center rounded-md min-w-[44px] min-h-[44px] text-2xl transition-all touch-manipulation',
-                    cell === 'grass'
-                      ? 'bg-green-700/80 hover:bg-green-600/90'
-                      : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
-                    isValid && 'ring-2 ring-amber-400 ring-offset-1 ring-offset-[var(--color-bg)]',
-                    !isValid && selectedOption && cell === 'grass' && 'opacity-50'
-                  )}
-                  onClick={() => handleCellClick(r, c)}
-                  onMouseEnter={() => handleCellEnter(r, c)}
-                  onMouseLeave={handleCellLeave}
-                  onFocus={() => handleCellEnter(r, c)}
-                  onBlur={handleCellLeave}
-                  disabled={state.phase !== 'playing' || selectedOption === null}
-                  aria-label={`Cell ${r + 1},${c + 1} ${cell}`}
-                >
-                  {showGhost && selectedOption ? (
-                    <span className="opacity-70" role="img">
-                      {TILE_EMOJI[selectedOption.tile as CellTile]}
-                    </span>
-                  ) : (
-                    <span role="img" aria-hidden={cell === 'grass'}>
-                      {TILE_EMOJI[cell]}
-                    </span>
-                  )}
-                </button>
-              );
-            })
-          )}
-        </div>
-
+      <main className="flex-1 flex flex-col items-center p-3 gap-2 overflow-auto">
         {state.phase === 'playing' && (
-          <>
-            <section className="w-full max-w-md" aria-label="Current tile options">
-              <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">
-                Choose one
+          <section className="w-full max-w-md" aria-label="Current tile options">
+              <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-1">
+                pick a tile
               </h2>
               <div className="flex gap-3 justify-center flex-wrap">
                 <CurrentTileOption
@@ -215,24 +199,69 @@ export const App = () => {
                 />
               </div>
             </section>
-
-            {state.turn < TOTAL_TURNS - 1 && (
-              <section className="w-full max-w-md" aria-label="Next turn preview">
-                <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-2">
-                  Next turn
-                </h2>
-                <div className="flex gap-3 justify-center flex-wrap">
-                  <NextTilePreview option={state.nextOptions[0]} />
-                  <NextTilePreview option={state.nextOptions[1]} />
-                </div>
-              </section>
-            )}
-          </>
         )}
+
+        {/* Grid */}
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="grid gap-0.5 p-1 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-border)]"
+            style={{
+              gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(44px, 1fr))`,
+              gridTemplateRows: `repeat(${GRID_SIZE}, minmax(44px, 1fr))`,
+              maxWidth: 'min(95vw, 320px)',
+              maxHeight: 'min(95vw, 320px)',
+              aspectRatio: '1',
+            }}
+          >
+            {state.grid.map((row, r) =>
+              row.map((cell, c) => {
+                const key = `${r},${c}`;
+                const isValid = validSet?.has(key) ?? false;
+                const isHover = state.hoverCell?.[0] === r && state.hoverCell?.[1] === c;
+                const showGhost = isHover && selectedOption && cell === 'grass';
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    className={clsx(
+                      'relative flex items-center justify-center rounded-md min-w-[44px] min-h-[44px] text-2xl transition-all touch-manipulation',
+                      cell === 'grass'
+                        ? 'bg-green-700/80 hover:bg-green-600/90'
+                        : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
+                      isValid && 'ring-2 ring-amber-400 ring-offset-1 ring-offset-[var(--color-bg)]',
+                      !isValid && selectedOption && cell === 'grass' && 'opacity-50'
+                    )}
+                    onClick={() => handleCellClick(r, c)}
+                    onMouseEnter={() => handleCellEnter(r, c)}
+                    onMouseLeave={handleCellLeave}
+                    onFocus={() => handleCellEnter(r, c)}
+                    onBlur={handleCellLeave}
+                    disabled={state.phase !== 'playing' || selectedOption === null}
+                    aria-label={`Cell ${r + 1},${c + 1} ${cell}`}
+                  >
+                    {showGhost && selectedOption ? (
+                      <span className="opacity-70" role="img">
+                        {TILE_EMOJI[selectedOption.tile as CellTile]}
+                      </span>
+                    ) : (
+                      <span role="img" aria-hidden={cell === 'grass'}>
+                        {TILE_EMOJI[cell]}
+                      </span>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <span className="self-end font-mono font-semibold text-[var(--color-score)] text-lg">
+            {state.score}pts
+          </span>
+        </div>
 
         {state.phase === 'ended' && (
           <p className="text-lg font-medium text-[var(--color-score)]">
-            Puzzle complete! Final score: {state.score}
+            Puzzle complete! Final score: {state.score}pts
           </p>
         )}
       </main>
