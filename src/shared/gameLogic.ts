@@ -7,12 +7,6 @@ import {
 
 const PLACEABLE_WITHOUT_CASTLE: PlaceableTile[] = ['mountain', 'tree', 'farm', 'house'];
 
-function randomConstraint(rng: () => number): PlacementConstraint {
-  const kind = rng() < 0.5 ? 'row' : 'column';
-  const index = Math.floor(rng() * GRID_SIZE) + 1; // 1–6
-  return kind === 'row' ? { kind: 'row', index } : { kind: 'column', index };
-}
-
 function randomPlaceable(rng: () => number, allowCastle: boolean): PlaceableTile {
   if (allowCastle) return 'castle';
   const i = Math.floor(rng() * PLACEABLE_WITHOUT_CASTLE.length);
@@ -30,19 +24,23 @@ export function generateAllTurnOptions(rng: () => number): TurnOptions[] {
   for (let t = 0; t < TOTAL_TURNS; t++) {
     const a = t * 2;
     const b = t * 2 + 1;
-    const current: [TileOption, TileOption] = [
-      {
-        tile: randomPlaceable(rng, a === castleSlot),
-        constraint: randomConstraint(rng),
-      },
-      {
-        tile: randomPlaceable(rng, b === castleSlot),
-        constraint: randomConstraint(rng),
-      },
-    ];
+    const tileA = randomPlaceable(rng, a === castleSlot);
+    const tileB = randomPlaceable(rng, b === castleSlot);
+    const rowIndex = Math.floor(rng() * GRID_SIZE) + 1;
+    const colIndex = Math.floor(rng() * GRID_SIZE) + 1;
+    const firstIsRow = rng() < 0.5;
+    const optA: TileOption = {
+      tile: tileA,
+      constraint: firstIsRow ? { kind: 'row', index: rowIndex } : { kind: 'column', index: colIndex },
+    };
+    const optB: TileOption = {
+      tile: tileB,
+      constraint: firstIsRow ? { kind: 'column', index: colIndex } : { kind: 'row', index: rowIndex },
+    };
+    const current: [TileOption, TileOption] = [optA, optB];
     options.push({
       current,
-      next: [current[0], current[1]], 
+      next: [current[0], current[1]],
     });
   }
 
@@ -96,7 +94,10 @@ function getNearbyCells(_grid: Grid, r: number, c: number): [number, number][] {
   return out;
 }
 
-/** BFS shortest path length (only through grass) from (sr,sc) to (tr,tc). Returns -1 if no path. */
+/** Orthogonally adjacent? */
+function isAdjacent(r: number, c: number, tr: number, tc: number): boolean {
+  return (Math.abs(r - tr) === 1 && c === tc) || (r === tr && Math.abs(c - tc) === 1);
+}
 function shortestGrassPath(grid: Grid, sr: number, sc: number, tr: number, tc: number): number {
   const visited = new Set<string>();
   const key = (r: number, c: number) => `${r},${c}`;
@@ -106,6 +107,7 @@ function shortestGrassPath(grid: Grid, sr: number, sc: number, tr: number, tc: n
   while (q.length > 0) {
     const [r, c, dist] = q.shift()!;
     if (r === tr && c === tc) return dist;
+    if (isAdjacent(r, c, tr, tc)) return dist;
     for (const [nr, nc] of getOrthogonalNeighbors(grid, r, c)) {
       const cell = grid[nr]?.[nc];
       if (cell !== 'grass') continue;
