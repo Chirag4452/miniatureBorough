@@ -5,6 +5,7 @@
   --color-surface: #fffbf5;
   --color-text: #1a1a1a;
   --color-text-muted: #5a5a5a;
+  --color-rules-text: #6a6a6a;
   --color-border: #d4cfc4;
   --color-highlight: rgba(212, 175, 55, 0.35);
   --color-ghost: rgba(0, 0, 0, 0.15);
@@ -20,6 +21,7 @@
     --color-surface: #252528;
     --color-text: #e8e6e3;
     --color-text-muted: #9a9895;
+    --color-rules-text: #b5b3b0;
     --color-border: #3d3d42;
     --color-highlight: rgba(212, 175, 55, 0.25);
     --color-ghost: rgba(255, 255, 255, 0.12);
@@ -49,6 +51,7 @@
   --color-surface: #fffbf5;
   --color-text: #1a1a1a;
   --color-text-muted: #5a5a5a;
+  --color-rules-text: #6a6a6a;
   --color-border: #d4cfc4;
   --color-highlight: rgba(212, 175, 55, 0.35);
   --color-ghost: rgba(0, 0, 0, 0.15);

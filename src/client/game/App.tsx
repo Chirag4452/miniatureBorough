@@ -11,7 +11,7 @@ import { clsx } from 'clsx';
 function RulesSection() {
   return (
     <div className="flex flex-nowrap items-start justify-between gap-4 text-sm">
-      <ul className="text-[var(--color-text-muted)] space-y-0.5 min-w-0 flex-1">
+      <ul className="text-[var(--color-rules-text)] space-y-0.5 min-w-0 flex-1">
         <li>
           <span role="img" aria-hidden>⛰️</span> 1pt for each nearby 🌲.
         </li>
@@ -28,9 +28,9 @@ function RulesSection() {
           <span role="img" aria-hidden>🏠</span> 1pt for unique nearby ⛰️🌲🌾🟩.
         </li>
       </ul>
-      <div className="flex flex-col gap-3 shrink-0 items-start">
+      <div className="flex flex-col gap-3 shrink-0 items-center">
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xs text-[var(--color-text-muted)]">nearby:</span>
+          <span className="text-xs text-[var(--color-rules-text)] w-14 text-center">nearby:</span>
           <div className="grid grid-cols-3 gap-0.5 w-[36px]">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -44,7 +44,7 @@ function RulesSection() {
           </div>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xs text-[var(--color-text-muted)]">touching:</span>
+          <span className="text-xs text-[var(--color-rules-text)] w-14 text-center">touching:</span>
           <div className="grid grid-cols-3 gap-0.5 w-[36px]">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -73,7 +73,7 @@ function PlacementIndicator({
   return (
     <div
       className={clsx(
-        'w-5 h-5 min-w-[20px] min-h-[20px] bg-black rounded-sm overflow-hidden flex',
+        'w-4 h-4 min-w-[16px] min-h-[16px] bg-black rounded-sm overflow-hidden flex',
         isColumn ? 'flex-row' : 'flex-col'
       )}
       aria-hidden
@@ -111,15 +111,15 @@ function CurrentTileOption({
       type="button"
       onClick={onSelect}
       className={clsx(
-        'flex items-center gap-2 rounded-lg border-2 transition-all min-h-[44px] px-3 py-2',
+        'flex items-center gap-1.5 rounded-lg transition-all min-h-[36px] px-2.5 py-1.5',
         'touch-manipulation',
         isSelected
-          ? 'border-amber-500 bg-[var(--color-highlight)]'
-          : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-amber-400'
+          ? 'bg-[var(--color-highlight)]'
+          : 'bg-[var(--color-surface)] hover:bg-[var(--color-highlight)]/50'
       )}
     >
       <PlacementIndicator constraint={option.constraint} isColumn={isColumn} />
-      <span className="text-2xl" role="img" aria-label={option.tile}>
+      <span className="text-xl" role="img" aria-label={option.tile}>
         {TILE_EMOJI[option.tile as CellTile]}
       </span>
     </button>
@@ -206,10 +206,10 @@ export const App = () => {
           <div
             className="grid gap-0.5 p-1 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-border)]"
             style={{
-              gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(44px, 1fr))`,
-              gridTemplateRows: `repeat(${GRID_SIZE}, minmax(44px, 1fr))`,
-              maxWidth: 'min(95vw, 320px)',
-              maxHeight: 'min(95vw, 320px)',
+              gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(40px, 1fr))`,
+              gridTemplateRows: `repeat(${GRID_SIZE}, minmax(40px, 1fr))`,
+              maxWidth: 'min(85.5vw, 288px)',
+              maxHeight: 'min(85.5vw, 288px)',
               aspectRatio: '1',
             }}
           >
@@ -225,7 +225,7 @@ export const App = () => {
                     key={key}
                     type="button"
                     className={clsx(
-                      'relative flex items-center justify-center rounded-md min-w-[44px] min-h-[44px] text-2xl transition-all touch-manipulation',
+                      'relative flex items-center justify-center rounded-md min-w-[40px] min-h-[40px] text-2xl transition-all touch-manipulation',
                       cell === 'grass'
                         ? 'bg-green-700/80 hover:bg-green-600/90'
                         : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
@@ -245,9 +245,11 @@ export const App = () => {
                         {TILE_EMOJI[selectedOption.tile as CellTile]}
                       </span>
                     ) : (
-                      <span role="img" aria-hidden={cell === 'grass'}>
-                        {TILE_EMOJI[cell]}
-                      </span>
+                      cell !== 'grass' ? (
+                        <span role="img" aria-label={cell}>
+                          {TILE_EMOJI[cell]}
+                        </span>
+                      ) : null
                     )}
                   </button>
                 );
