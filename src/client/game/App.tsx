@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useGame } from '../hooks/useGame';
 import {
   TILE_EMOJI,
@@ -127,6 +127,8 @@ function CurrentTileOption({
 }
 
 export const App = () => {
+  const [show_rules, set_show_rules] = useState(false);
+
   const {
     state,
     selectTile,
@@ -171,18 +173,41 @@ export const App = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors">
       <header className="relative flex flex-col gap-3 p-3">
-        <div className="flex items-center justify-center">
-          <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
-          <span className="absolute right-3 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
+        <div className="flex items-center justify-center relative">
+          <button
+            type="button"
+            className="absolute left-0 w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text)] font-bold text-lg transition-all duration-200 hover:scale-110 hover:brightness-110 active:scale-95 border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-highlight)]/50"
+            onClick={() => set_show_rules(!show_rules)}
+            aria-label="Toggle rules"
+          >
+            ?
+          </button>
+
+          {!show_rules && (
+            <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
+          )}
+
+          <span className="absolute right-0 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
             {utcDate}
           </span>
         </div>
-        <RulesSection />
+
+        {show_rules && <RulesSection />}
       </header>
 
-      <main className="flex-1 flex flex-col items-center p-3 gap-2 overflow-auto">
-        {/* Fixed-height section: tile picker during play, result when ended */}
-        <section className="w-full max-w-md min-h-[60px] flex flex-col justify-center" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
+      <main
+        className="flex-1 flex flex-col items-center p-3 gap-2 overflow-auto transition-all duration-300"
+        style={{
+          marginTop: show_rules ? '0' : '0',
+        }}
+      >
+        <section
+          className="w-full max-w-md min-h-[60px] flex flex-col justify-center transition-all duration-300"
+          style={{
+            marginTop: show_rules ? '40px' : '0',
+          }}
+          aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}
+        >
           {state.phase === 'playing' ? (
             <>
               <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-1">
