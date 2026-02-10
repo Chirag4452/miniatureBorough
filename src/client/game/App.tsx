@@ -136,7 +136,6 @@ export const App = () => {
     placeTile,
     getValidPositions,
     isValidPlacement: checkValid,
-    utcDate,
   } = useGame();
 
   const selectedOption =
@@ -183,13 +182,7 @@ export const App = () => {
             ?
           </button>
 
-          {!show_rules && (
-            <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
-          )}
-
-          <span className="absolute right-0 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
-            {utcDate}
-          </span>
+          <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
         </div>
 
         {show_rules && <RulesSection />}
