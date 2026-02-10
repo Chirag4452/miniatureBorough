@@ -68,21 +68,30 @@ export const Splash = () => {
 
       {/* Title & subtitle */}
       <div
-        className="flex flex-col items-center gap-2 transition-all duration-700 ease-out"
+        className="flex flex-col items-center gap-3 transition-all duration-700 ease-out"
         style={{
           opacity: visible ? 1 : 0,
           transform: visible ? 'translateY(0)' : 'translateY(12px)',
           transitionDelay: '200ms',
         }}
       >
-        <h1 className="text-3xl font-bold text-center text-white tracking-tight">
+        <h1
+          className="text-4xl font-extrabold text-center text-white tracking-tight select-none"
+          style={{
+            textShadow: '0 2px 12px rgba(0,0,0,0.4), 0 0 24px rgba(107, 142, 35, 0.15)',
+            letterSpacing: '-0.02em',
+          }}
+        >
           Miniature Borough
         </h1>
-        <p className="text-sm text-center text-gray-400 max-w-[240px] leading-relaxed">
-          Place tiles. Build your borough. Chase the high score.
-        </p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          🗓️ New puzzle every day
+        <p
+          className="text-base text-center max-w-[260px] leading-relaxed font-medium"
+          style={{
+            color: 'rgba(226, 232, 240, 0.85)',
+            textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+          }}
+        >
+          Place tiles. Build your borough.
         </p>
       </div>
 
@@ -96,15 +105,25 @@ export const Splash = () => {
         }}
       >
         <button
-          className="flex items-center justify-center gap-2 text-white font-semibold w-auto h-12 rounded-full cursor-pointer px-8 text-base transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95"
+          type="button"
+          className="group flex items-center justify-center gap-3 text-white font-bold w-auto min-w-[160px] h-14 rounded-full cursor-pointer px-10 text-lg transition-all duration-300 hover:scale-[1.05] hover:brightness-110 active:scale-[0.98] active:brightness-95 border border-white/20"
           style={{
-            background: 'linear-gradient(135deg, #6b8e23 0%, #4a7c10 100%)',
-            boxShadow: '0 4px 20px rgba(107, 142, 35, 0.35)',
+            background: 'linear-gradient(145deg, #7a9e2e 0%, #5a8c18 50%, #4a7c10 100%)',
+            boxShadow:
+              '0 4px 20px rgba(107, 142, 35, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
           }}
           onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
         >
-          <span>▶</span>
-          <span>Play</span>
+          {/* Play icon — crisp SVG instead of Unicode */}
+          <svg
+            className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden
+          >
+            <path d="M8 5v14l11-7L8 5z" />
+          </svg>
+          <span className="tracking-wide">Play Now</span>
         </button>
       </div>
 
@@ -116,13 +135,6 @@ export const Splash = () => {
           transitionDelay: '600ms',
         }}
       >
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-500">
-          <span>⛰️ → nearby 🌲</span>
-          <span>🌲 → touching 🌲</span>
-          <span>🌾 → touching 🟩</span>
-          <span>🏰 → path to 🏠</span>
-          <span>🏠 → unique neighbors</span>
-        </div>
       </div>
 
       {/* Inline keyframe animation */}
