@@ -181,8 +181,10 @@ export const App = () => {
       </header>
 
       <main className="flex-1 flex flex-col items-center p-3 gap-2 overflow-auto">
-        {state.phase === 'playing' && (
-          <section className="w-full max-w-md" aria-label="Current tile options">
+        {/* Fixed-height section: tile picker during play, result when ended */}
+        <section className="w-full max-w-md min-h-[60px] flex flex-col justify-center" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
+          {state.phase === 'playing' ? (
+            <>
               <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-1">
                 pick a tile
               </h2>
@@ -198,8 +200,13 @@ export const App = () => {
                   onSelect={() => selectTile(1)}
                 />
               </div>
-            </section>
-        )}
+            </>
+          ) : (
+            <p className="text-lg font-medium text-[var(--color-score)] text-center">
+              Puzzle complete! Final score: {state.score}pts
+            </p>
+          )}
+        </section>
 
         {/* Grid */}
         <div className="flex flex-col items-center gap-2">
@@ -260,12 +267,6 @@ export const App = () => {
             {state.score}pts
           </span>
         </div>
-
-        {state.phase === 'ended' && (
-          <p className="text-lg font-medium text-[var(--color-score)]">
-            Puzzle complete! Final score: {state.score}pts
-          </p>
-        )}
       </main>
     </div>
   );
