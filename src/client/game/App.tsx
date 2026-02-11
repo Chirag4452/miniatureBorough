@@ -11,7 +11,7 @@ import { clsx } from 'clsx';
 function RulesSection() {
   return (
     <div className="flex flex-nowrap items-start justify-between gap-4 text-sm">
-      <ul className="text-[var(--color-rules-text)] space-y-0.5 min-w-0 flex-1">
+      <ul className="text-white space-y-0.5 min-w-0 flex-1">
         <li>
           <span role="img" aria-hidden>⛰️</span> 1pt for each nearby 🌲.
         </li>
@@ -25,12 +25,12 @@ function RulesSection() {
           <span role="img" aria-hidden>🏰</span> 1pt for each 🟩 on route to nearest 🏠.
         </li>
         <li>
-          <span role="img" aria-hidden>🏠</span> 1pt for unique nearby ⛰️🌲🌾🟩.
+          <span role="img" aria-hidden>🏠</span> 1pt per unique nearby type.
         </li>
       </ul>
       <div className="flex flex-col gap-3 shrink-0 items-center">
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xs text-[var(--color-rules-text)] w-14 text-center">nearby:</span>
+          <span className="text-xs text-white w-14 text-center">nearby:</span>
           <div className="grid grid-cols-3 gap-0.5 w-[36px]">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -44,7 +44,7 @@ function RulesSection() {
           </div>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xs text-[var(--color-rules-text)] w-14 text-center">touching:</span>
+          <span className="text-xs text-white w-14 text-center">touching:</span>
           <div className="grid grid-cols-3 gap-0.5 w-[36px]">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -169,8 +169,8 @@ export const App = () => {
   const handleCellLeave = useCallback(() => setHoverCell(null), [setHoverCell]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors">
-      <header className="relative flex flex-col gap-3 p-3">
+    <div className="bg-pattern min-h-screen flex flex-col text-[var(--color-text)] transition-colors p-3 gap-3">
+      <header className="content-panel relative flex flex-col gap-3">
         <div className="flex items-center justify-center">
           <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
           <span className="absolute right-3 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
@@ -178,36 +178,34 @@ export const App = () => {
           </span>
         </div>
         <RulesSection />
-      </header>
 
-      <main className="flex-1 flex flex-col items-center p-3 gap-2 overflow-auto">
-        {/* Fixed-height section: tile picker during play, result when ended */}
-        <section className="w-full max-w-md min-h-[60px] flex flex-col justify-center" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
+        {/* Tile picker / result */}
+        <section className="w-full max-w-md min-h-[40px] flex flex-col justify-center mx-auto" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
           {state.phase === 'playing' ? (
-            <>
-              <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-1">
+            <div className="flex gap-3 items-center justify-center flex-wrap">
+              <h2 className="text-sm font-medium text-white/80">
                 pick a tile
               </h2>
-              <div className="flex gap-3 justify-center flex-wrap">
-                <CurrentTileOption
-                  option={state.currentOptions[0]}
-                  isSelected={state.selectedTileIndex === 0}
-                  onSelect={() => selectTile(0)}
-                />
-                <CurrentTileOption
-                  option={state.currentOptions[1]}
-                  isSelected={state.selectedTileIndex === 1}
-                  onSelect={() => selectTile(1)}
-                />
-              </div>
-            </>
+              <CurrentTileOption
+                option={state.currentOptions[0]}
+                isSelected={state.selectedTileIndex === 0}
+                onSelect={() => selectTile(0)}
+              />
+              <CurrentTileOption
+                option={state.currentOptions[1]}
+                isSelected={state.selectedTileIndex === 1}
+                onSelect={() => selectTile(1)}
+              />
+            </div>
           ) : (
-            <p className="text-lg font-medium text-[var(--color-score)] text-center">
+            <p className="text-lg font-medium text-yellow-200 text-center">
               Puzzle complete! Final score: {state.score}pts
             </p>
           )}
         </section>
+      </header>
 
+      <main className="flex-1 flex flex-col items-center gap-2 overflow-auto">
         {/* Grid */}
         <div className="flex flex-col items-center gap-2">
           <div
@@ -263,7 +261,7 @@ export const App = () => {
               })
             )}
           </div>
-          <span className="self-end font-mono font-semibold text-[var(--color-score)] text-lg">
+          <span className="self-end font-mono font-semibold text-yellow-400 text-lg">
             {state.score}pts
           </span>
         </div>
