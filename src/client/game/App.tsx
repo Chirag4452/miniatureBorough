@@ -1,12 +1,17 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGame } from '../hooks/useGame';
+import { useDailyAttempts } from '../hooks/useDailyAttempts';
 import {
   TILE_EMOJI,
   GRID_SIZE,
+  TOTAL_TURNS,
   type PlacementConstraint,
   type CellTile,
+  type TileOption,
 } from '../../shared/types/game';
 import { clsx } from 'clsx';
+
+const DAILY_ATTEMPTS_MAX = 3;
 
 function TileIcon({ tile, className }: { tile: CellTile; className?: string }) {
   return (
@@ -176,6 +181,27 @@ function CurrentTileOption({
   );
 }
 
+function NextTilePreview({ options }: { options: [TileOption, TileOption] }) {
+  return (
+    <div className="flex gap-3 items-center justify-center flex-wrap">
+      <span className="text-sm font-medium text-white/60">Next</span>
+      {options.map((option, i) => {
+        const isColumn = option.constraint.kind === 'column';
+        return (
+          <div
+            key={i}
+            className="flex items-center gap-1.5 rounded-lg min-h-[36px] px-2.5 py-1.5 bg-[var(--color-surface)]/70 border border-[var(--color-border)]"
+            aria-hidden
+          >
+            <PlacementIndicator constraint={option.constraint} isColumn={isColumn} />
+            <TileIcon tile={option.tile as CellTile} className="text-xl" />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export const App = () => {
   const {
     state,
@@ -186,7 +212,17 @@ export const App = () => {
     isValidPlacement: checkValid,
   } = useGame();
 
+  const { attempts_used, max_score, loading, record_attempt } = useDailyAttempts();
+  const no_attempts_left = attempts_used >= DAILY_ATTEMPTS_MAX;
+  const recorded_this_game = useRef(false);
+
   const [rules_open, set_rules_open] = useState(false);
+
+  useEffect(() => {
+    if (state.phase !== 'ended' || recorded_this_game.current) return;
+    recorded_this_game.current = true;
+    void record_attempt(state.score);
+  }, [state.phase, state.score, record_attempt]);
 
   const selectedOption =
     state.selectedTileIndex !== null ? state.currentOptions[state.selectedTileIndex] : null;
@@ -198,12 +234,12 @@ export const App = () => {
 
   const handleCellClick = useCallback(
     (row: number, col: number) => {
-      if (state.phase !== 'playing' || selectedOption === null) return;
+      if (no_attempts_left || state.phase !== 'playing' || selectedOption === null) return;
       if (checkValid(state.grid, row, col, selectedOption.constraint)) {
         placeTile(row, col);
       }
     },
-    [state.phase, selectedOption, placeTile, checkValid, state.grid]
+    [no_attempts_left, state.phase, selectedOption, placeTile, checkValid, state.grid]
   );
 
   const handleCellEnter = useCallback(
@@ -222,7 +258,7 @@ export const App = () => {
   return (
     <div className="bg-pattern min-h-screen flex flex-col text-[var(--color-text)] transition-colors p-3 gap-3">
       <header className="content-panel relative flex flex-col gap-3">
-        <div className="flex items-center justify-center gap-1.5">
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
           <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
           <button
             type="button"
@@ -232,24 +268,47 @@ export const App = () => {
           >
             ?
           </button>
+          {!loading && (
+            <span className="text-sm font-semibold text-amber-300 tabular-nums" aria-label={`Attempts ${attempts_used} of ${DAILY_ATTEMPTS_MAX}`}>
+              {attempts_used}/{DAILY_ATTEMPTS_MAX}
+            </span>
+          )}
         </div>
 
+        {no_attempts_left && (
+          <p className="text-center text-amber-200 font-medium">
+            No attempts left today. Best: {max_score}pts
+          </p>
+        )}
+
+        {state.phase === 'playing' && !no_attempts_left && state.turn < TOTAL_TURNS - 1 && state.nextOptions && (
+          <section className="w-full max-w-md mx-auto" aria-label="Next turn preview">
+            <NextTilePreview options={state.nextOptions} />
+          </section>
+        )}
+
         <section className="w-full max-w-md min-h-[40px] flex flex-col justify-center mx-auto" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
-          {state.phase === 'playing' ? (
-            <div className="flex gap-3 items-center justify-center flex-wrap">
-              <h2 className="text-sm font-medium text-white/80">
-                Pick a tile
-              </h2>
-              <CurrentTileOption
-                option={state.currentOptions[0]}
-                isSelected={state.selectedTileIndex === 0}
-                onSelect={() => selectTile(0)}
-              />
-              <CurrentTileOption
-                option={state.currentOptions[1]}
-                isSelected={state.selectedTileIndex === 1}
-                onSelect={() => selectTile(1)}
-              />
+          {no_attempts_left ? (
+            <p className="text-lg font-medium text-yellow-200 text-center">
+              Come back tomorrow for a new puzzle.
+            </p>
+          ) : state.phase === 'playing' ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-3 items-center justify-center flex-wrap">
+                <h2 className="text-sm font-medium text-white/80">
+                  Pick a tile
+                </h2>
+                <CurrentTileOption
+                  option={state.currentOptions[0]}
+                  isSelected={state.selectedTileIndex === 0}
+                  onSelect={() => selectTile(0)}
+                />
+                <CurrentTileOption
+                  option={state.currentOptions[1]}
+                  isSelected={state.selectedTileIndex === 1}
+                  onSelect={() => selectTile(1)}
+                />
+              </div>
             </div>
           ) : (
             <p className="text-lg font-medium text-yellow-200 text-center">
@@ -261,7 +320,7 @@ export const App = () => {
 
       <RulesOverlay open={rules_open} onClose={() => set_rules_open(false)} />
 
-      <main className="flex-1 flex flex-col items-center gap-2 overflow-auto">
+      <main className={clsx('flex-1 flex flex-col items-center gap-2 overflow-auto', no_attempts_left && 'pointer-events-none opacity-75')}>
         <div className="flex flex-col items-center gap-2">
           <div
             className="grid gap-0.5 p-1 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-border)]"
@@ -299,7 +358,7 @@ export const App = () => {
                     onMouseLeave={handleCellLeave}
                     onFocus={() => handleCellEnter(r, c)}
                     onBlur={handleCellLeave}
-                    disabled={state.phase !== 'playing' || selectedOption === null}
+                    disabled={no_attempts_left || state.phase !== 'playing' || selectedOption === null}
                     aria-label={`Cell ${r + 1},${c + 1} ${cell}`}
                   >
                     {showGhost && selectedOption ? (
