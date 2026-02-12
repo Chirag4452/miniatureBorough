@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
 import {
   TILE_EMOJI,
@@ -8,7 +8,6 @@ import {
 } from '../../shared/types/game';
 import { clsx } from 'clsx';
 
-/** Renders a tile visual – uses images for tree/rock/mountain, emoji for everything else. */
 function TileIcon({ tile, className }: { tile: CellTile; className?: string }) {
   if (tile === 'tree') {
     return <img src="/tree2.png" alt="tree" className={clsx('inline-block w-6 h-6', className)} />;
@@ -25,21 +24,21 @@ function TileIcon({ tile, className }: { tile: CellTile; className?: string }) {
 function RulesSection() {
   return (
     <div className="flex flex-nowrap items-start justify-between gap-4 text-sm">
-      <ul className="text-white space-y-0.5 min-w-0 flex-1">
+      <ul className="text-white space-y-1.5 min-w-0 flex-1">
         <li>
-          <span role="img" aria-hidden>⛰️</span> 1pt for each nearby 🌲.
+          <span role="img" aria-hidden>⛰️</span> <span className="font-semibold text-amber-300">1pt</span> for each nearby <span role="img" aria-hidden>🌲</span>.
         </li>
         <li>
-          <span role="img" aria-hidden></span> 1pt for each touching .
+          <span role="img" aria-hidden>🌲</span> <span className="font-semibold text-amber-300">1pt</span> for each touching <span role="img" aria-hidden>🌲</span>.
         </li>
         <li>
-          <span role="img" aria-hidden>🌾</span> 1pt for each touching 🟩.
+          <span role="img" aria-hidden>🌾</span> <span className="font-semibold text-amber-300">1pt</span> for each touching <span role="img" aria-hidden>🟩</span>.
         </li>
         <li>
-          <span role="img" aria-hidden>🏰</span> 1pt for each 🟩 on route to nearest 🏠.
+          <span role="img" aria-hidden>🏰</span> <span className="font-semibold text-amber-300">1pt</span> for each <span role="img" aria-hidden>🟩</span> on route to nearest <span role="img" aria-hidden>🏠</span>.
         </li>
         <li>
-          <span role="img" aria-hidden>🏠</span> 1pt per unique nearby type.
+          <span role="img" aria-hidden>🏠</span> <span className="font-semibold text-amber-300">1pt</span> per unique nearby type.
         </li>
       </ul>
       <div className="flex flex-col gap-3 shrink-0 items-center">
@@ -71,6 +70,50 @@ function RulesSection() {
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RulesOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const handle_key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handle_key);
+    return () => window.removeEventListener('keydown', handle_key);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="rules-title"
+    >
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/90 cursor-default"
+        onClick={onClose}
+        aria-label="Close rules"
+      />
+      <div className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <h2 id="rules-title" className="text-base sm:text-lg font-bold text-white">
+            Rules
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition-colors touch-manipulation"
+            aria-label="Close rules"
+          >
+            ✕
+          </button>
+        </div>
+        <RulesSection />
       </div>
     </div>
   );
@@ -146,8 +189,9 @@ export const App = () => {
     placeTile,
     getValidPositions,
     isValidPlacement: checkValid,
-    utcDate,
   } = useGame();
+
+  const [rules_open, set_rules_open] = useState(false);
 
   const selectedOption =
     state.selectedTileIndex !== null ? state.currentOptions[state.selectedTileIndex] : null;
@@ -183,20 +227,23 @@ export const App = () => {
   return (
     <div className="bg-pattern min-h-screen flex flex-col text-[var(--color-text)] transition-colors p-3 gap-3">
       <header className="content-panel relative flex flex-col gap-3">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center gap-1.5">
           <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
-          <span className="absolute right-3 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
-            {utcDate}
-          </span>
+          <button
+            type="button"
+            onClick={() => set_rules_open(true)}
+            className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold text-[var(--color-text)] bg-[var(--color-surface)]/80 hover:bg-[var(--color-highlight)] border border-[var(--color-border)] transition-colors touch-manipulation"
+            aria-label="Show rules"
+          >
+            ?
+          </button>
         </div>
-        <RulesSection />
 
-        {/* Tile picker / result */}
         <section className="w-full max-w-md min-h-[40px] flex flex-col justify-center mx-auto" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
           {state.phase === 'playing' ? (
             <div className="flex gap-3 items-center justify-center flex-wrap">
               <h2 className="text-sm font-medium text-white/80">
-                pick a tile
+                Pick a tile
               </h2>
               <CurrentTileOption
                 option={state.currentOptions[0]}
@@ -217,8 +264,9 @@ export const App = () => {
         </section>
       </header>
 
+      <RulesOverlay open={rules_open} onClose={() => set_rules_open(false)} />
+
       <main className="flex-1 flex flex-col items-center gap-2 overflow-auto">
-        {/* Grid */}
         <div className="flex flex-col items-center gap-2">
           <div
             className="grid gap-0.5 p-1 rounded-xl border-2 border-[var(--color-border)] bg-[var(--color-border)]"
