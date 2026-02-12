@@ -34,6 +34,14 @@
   "triggers": {
     "onAppInstall": "/internal/on-app-install"
   },
+  "scheduler": {
+    "tasks": {
+      "daily-game-post": {
+        "endpoint": "/internal/scheduler/daily-game-post",
+        "cron": "0 12 * * *"
+      }
+    }
+  },
   "dev": {
     "subreddit": "miniatureborough_dev"
   }

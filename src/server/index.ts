@@ -1,15 +1,13 @@
 import express from 'express';
+import type { TaskResponse } from '@devvit/web/server';
 import { InitResponse, IncrementResponse, DecrementResponse } from '../shared/types/api';
 import { redis, reddit, createServer, context, getServerPort } from '@devvit/web/server';
 import { createPost } from './core/post';
 
 const app = express();
 
-// Middleware for JSON body parsing
 app.use(express.json());
-// Middleware for URL-encoded body parsing
 app.use(express.urlencoded({ extended: true }));
-// Middleware for plain text body parsing
 app.use(express.text());
 
 const router = express.Router();
@@ -121,6 +119,18 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
       status: 'error',
       message: 'Failed to create post',
     });
+  }
+});
+
+router.post('/internal/scheduler/daily-game-post', async (_req, res): Promise<void> => {
+  try {
+    const post = await createPost();
+    console.log(`Daily game post created: ${post.id}`);
+    const body: TaskResponse = { status: 'ok' };
+    res.status(200).json(body);
+  } catch (error) {
+    console.error(`Daily game post failed: ${error}`);
+    res.status(500).json({ status: 'error', message: 'Daily post failed' });
   }
 });
 

@@ -1,7 +1,3 @@
-/**
- * UTC date string (YYYY-MM-DD) for the current day.
- * Same UTC day → same string everywhere; puzzle changes only at 00:00 UTC.
- */
 export function getUtcDateString(): string {
   const now = new Date();
   const y = now.getUTCFullYear();
@@ -30,7 +26,7 @@ export function createSeededRng(seed: number): () => number {
 }
 
 export function createDailyRng(): () => number {
-  const dateStr = getUtcDateString();
-  const seed = hashString(dateStr);
+  const date_str = getUtcDateString();
+  const seed = hashString(date_str);
   return createSeededRng(seed);
 }

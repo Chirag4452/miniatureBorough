@@ -9,16 +9,11 @@ import {
 import { clsx } from 'clsx';
 
 function TileIcon({ tile, className }: { tile: CellTile; className?: string }) {
-  if (tile === 'tree') {
-    return <img src="/tree2.png" alt="tree" className={clsx('inline-block w-6 h-6', className)} />;
-  }
-  if (tile === 'rock') {
-    return <img src="/rock.png" alt="rock" className={clsx('inline-block w-6 h-6', className)} />;
-  }
-  if (tile === 'mountain') {
-    return <img src="/mountain.png" alt="mountain" className={clsx('inline-block w-6 h-6', className)} />;
-  }
-  return <span className={className} role="img" aria-label={tile}>{TILE_EMOJI[tile]}</span>;
+  return (
+    <span className={className} role="img" aria-label={tile}>
+      {TILE_EMOJI[tile]}
+    </span>
+  );
 }
 
 function RulesSection() {
