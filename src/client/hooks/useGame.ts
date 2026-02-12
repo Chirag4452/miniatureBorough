@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { createDailyRng, getUtcDateString } from '../../shared/dailySeed';
 import {
-  createEmptyGrid,
+  createInitialGrid,
   generateAllTurnOptions,
   computeScore,
   isValidPlacement,
@@ -10,19 +10,19 @@ import {
 import type { GameState } from '../../shared/types/game';
 import { TOTAL_TURNS } from '../../shared/types/game';
 
-const ALL_TURN_OPTIONS = (() => {
-  const rng = createDailyRng();
-  return generateAllTurnOptions(rng);
-})();
+// Single daily RNG: rocks consume first, then turn options
+const DAILY_RNG = createDailyRng();
+const INITIAL_GRID = createInitialGrid(DAILY_RNG);
+const ALL_TURN_OPTIONS = generateAllTurnOptions(DAILY_RNG);
 
 function getInitialState(): GameState {
   const opts = ALL_TURN_OPTIONS[0];
   if (!opts) throw new Error('Failed to generate turn options');
   return {
-    grid: createEmptyGrid(),
+    grid: INITIAL_GRID.map((row) => [...row]),
     turn: 0,
     phase: 'playing',
-    score: 0,
+    score: computeScore(INITIAL_GRID),
     currentOptions: opts.current,
     nextOptions: opts.next,
     selectedTileIndex: null,

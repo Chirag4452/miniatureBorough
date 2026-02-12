@@ -8,15 +8,29 @@ import {
 } from '../../shared/types/game';
 import { clsx } from 'clsx';
 
+/** Renders a tile visual – uses images for tree/rock/mountain, emoji for everything else. */
+function TileIcon({ tile, className }: { tile: CellTile; className?: string }) {
+  if (tile === 'tree') {
+    return <img src="/tree2.png" alt="tree" className={clsx('inline-block w-6 h-6', className)} />;
+  }
+  if (tile === 'rock') {
+    return <img src="/rock.png" alt="rock" className={clsx('inline-block w-6 h-6', className)} />;
+  }
+  if (tile === 'mountain') {
+    return <img src="/mountain.png" alt="mountain" className={clsx('inline-block w-6 h-6', className)} />;
+  }
+  return <span className={className} role="img" aria-label={tile}>{TILE_EMOJI[tile]}</span>;
+}
+
 function RulesSection() {
   return (
     <div className="flex flex-nowrap items-start justify-between gap-4 text-sm">
-      <ul className="text-[var(--color-rules-text)] space-y-0.5 min-w-0 flex-1">
+      <ul className="text-white space-y-0.5 min-w-0 flex-1">
         <li>
           <span role="img" aria-hidden>⛰️</span> 1pt for each nearby 🌲.
         </li>
         <li>
-          <span role="img" aria-hidden>🌲</span> 1pt for each touching 🌲.
+          <span role="img" aria-hidden></span> 1pt for each touching .
         </li>
         <li>
           <span role="img" aria-hidden>🌾</span> 1pt for each touching 🟩.
@@ -25,12 +39,12 @@ function RulesSection() {
           <span role="img" aria-hidden>🏰</span> 1pt for each 🟩 on route to nearest 🏠.
         </li>
         <li>
-          <span role="img" aria-hidden>🏠</span> 1pt for unique nearby ⛰️🌲🌾🟩.
+          <span role="img" aria-hidden>🏠</span> 1pt per unique nearby type.
         </li>
       </ul>
       <div className="flex flex-col gap-3 shrink-0 items-center">
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xs text-[var(--color-rules-text)] w-14 text-center">nearby:</span>
+          <span className="text-xs text-white w-14 text-center">nearby:</span>
           <div className="grid grid-cols-3 gap-0.5 w-[36px]">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -44,7 +58,7 @@ function RulesSection() {
           </div>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <span className="text-xs text-[var(--color-rules-text)] w-14 text-center">touching:</span>
+          <span className="text-xs text-white w-14 text-center">touching:</span>
           <div className="grid grid-cols-3 gap-0.5 w-[36px]">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
@@ -119,9 +133,7 @@ function CurrentTileOption({
       )}
     >
       <PlacementIndicator constraint={option.constraint} isColumn={isColumn} />
-      <span className="text-xl" role="img" aria-label={option.tile}>
-        {TILE_EMOJI[option.tile as CellTile]}
-      </span>
+      <TileIcon tile={option.tile as CellTile} className="text-xl" />
     </button>
   );
 }
@@ -170,62 +182,40 @@ export const App = () => {
   const handleCellLeave = useCallback(() => setHoverCell(null), [setHoverCell]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] transition-colors">
-      <header className="relative flex flex-col gap-3 p-3">
-        <div className="flex items-center justify-center relative">
-          <button
-            type="button"
-            className="absolute left-0 w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text)] font-bold text-lg transition-all duration-200 hover:scale-110 hover:brightness-110 active:scale-95 border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-highlight)]/50"
-            onClick={() => set_show_rules(!show_rules)}
-            aria-label="Toggle rules"
-          >
-            ?
-          </button>
-
+    <div className="bg-pattern min-h-screen flex flex-col text-[var(--color-text)] transition-colors p-3 gap-3">
+      <header className="content-panel relative flex flex-col gap-3">
+        <div className="flex items-center justify-center">
           <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
         </div>
+        <RulesSection />
 
-        {show_rules && <RulesSection />}
-      </header>
-
-      <main
-        className="flex-1 flex flex-col items-center p-3 gap-2 overflow-auto transition-all duration-300"
-        style={{
-          marginTop: show_rules ? '0' : '0',
-        }}
-      >
-        <section
-          className="w-full max-w-md min-h-[60px] flex flex-col justify-center transition-all duration-300"
-          style={{
-            marginTop: show_rules ? '40px' : '0',
-          }}
-          aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}
-        >
+        {/* Tile picker / result */}
+        <section className="w-full max-w-md min-h-[40px] flex flex-col justify-center mx-auto" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
           {state.phase === 'playing' ? (
-            <>
-              <h2 className="text-sm font-medium text-[var(--color-text-muted)] mb-1">
+            <div className="flex gap-3 items-center justify-center flex-wrap">
+              <h2 className="text-sm font-medium text-white/80">
                 pick a tile
               </h2>
-              <div className="flex gap-3 justify-center flex-wrap">
-                <CurrentTileOption
-                  option={state.currentOptions[0]}
-                  isSelected={state.selectedTileIndex === 0}
-                  onSelect={() => selectTile(0)}
-                />
-                <CurrentTileOption
-                  option={state.currentOptions[1]}
-                  isSelected={state.selectedTileIndex === 1}
-                  onSelect={() => selectTile(1)}
-                />
-              </div>
-            </>
+              <CurrentTileOption
+                option={state.currentOptions[0]}
+                isSelected={state.selectedTileIndex === 0}
+                onSelect={() => selectTile(0)}
+              />
+              <CurrentTileOption
+                option={state.currentOptions[1]}
+                isSelected={state.selectedTileIndex === 1}
+                onSelect={() => selectTile(1)}
+              />
+            </div>
           ) : (
-            <p className="text-lg font-medium text-[var(--color-score)] text-center">
+            <p className="text-lg font-medium text-yellow-200 text-center">
               Puzzle complete! Final score: {state.score}pts
             </p>
           )}
         </section>
+      </header>
 
+      <main className="flex-1 flex flex-col items-center gap-2 overflow-auto">
         {/* Grid */}
         <div className="flex flex-col items-center gap-2">
           <div
@@ -253,7 +243,9 @@ export const App = () => {
                       'relative flex items-center justify-center rounded-md min-w-[40px] min-h-[40px] text-2xl transition-all touch-manipulation',
                       cell === 'grass'
                         ? 'bg-green-700/80 hover:bg-green-600/90'
-                        : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
+                        : cell === 'rock'
+                          ? 'bg-green-500/70 cursor-default'
+                          : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
                       isValid && 'ring-2 ring-amber-400 ring-offset-1 ring-offset-[var(--color-bg)]',
                       !isValid && selectedOption && cell === 'grass' && 'opacity-50'
                     )}
@@ -266,14 +258,10 @@ export const App = () => {
                     aria-label={`Cell ${r + 1},${c + 1} ${cell}`}
                   >
                     {showGhost && selectedOption ? (
-                      <span className="opacity-70" role="img">
-                        {TILE_EMOJI[selectedOption.tile as CellTile]}
-                      </span>
+                      <TileIcon tile={selectedOption.tile as CellTile} className="opacity-70" />
                     ) : (
                       cell !== 'grass' ? (
-                        <span role="img" aria-label={cell}>
-                          {TILE_EMOJI[cell]}
-                        </span>
+                        <TileIcon tile={cell} />
                       ) : null
                     )}
                   </button>
@@ -281,7 +269,7 @@ export const App = () => {
               })
             )}
           </div>
-          <span className="self-end font-mono font-semibold text-[var(--color-score)] text-lg">
+          <span className="self-end font-mono font-semibold text-yellow-400 text-lg">
             {state.score}pts
           </span>
         </div>
