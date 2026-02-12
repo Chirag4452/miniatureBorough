@@ -64,10 +64,9 @@
 .bg-pattern {
   background-image: url('/bush.png');
   background-repeat: repeat;
-  background-size: 64px 64px; /* adjust tile size to taste */
+  background-size: 64px 64px;
 }
 
-/* Panels that sit above the tileable background */
 .content-panel {
   background: radial-gradient(
     ellipse at center,

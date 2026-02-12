@@ -4,7 +4,6 @@ import { requestExpandedMode } from '@devvit/web/client';
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-/* Mini preview grid — a static decorative 4×4 board */
 const PREVIEW_GRID: string[][] = [
   ['🌲', '🟩', '⛰️', '🌲'],
   ['🟩', '🏠', '🌲', '🟩'],
@@ -25,7 +24,6 @@ export const Splash = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger entrance animation after mount
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
   }, []);
@@ -35,7 +33,6 @@ export const Splash = () => {
       className="flex relative flex-col justify-center items-center min-h-screen gap-5 px-4"
       style={{ background: 'linear-gradient(160deg, #2d3a1e 0%, #1a1a1c 40%, #1c1926 100%)' }}
     >
-      {/* Decorative mini grid */}
       <div
         className="transition-all duration-700 ease-out"
         style={{
@@ -66,7 +63,6 @@ export const Splash = () => {
         </div>
       </div>
 
-      {/* Title & subtitle */}
       <div
         className="flex flex-col items-center gap-3 transition-all duration-700 ease-out"
         style={{
@@ -95,7 +91,6 @@ export const Splash = () => {
         </p>
       </div>
 
-      {/* Play button */}
       <div
         className="transition-all duration-700 ease-out"
         style={{
@@ -114,7 +109,6 @@ export const Splash = () => {
           }}
           onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
         >
-          {/* Play icon — crisp SVG instead of Unicode */}
           <svg
             className="w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-110"
             viewBox="0 0 24 24"
@@ -127,17 +121,7 @@ export const Splash = () => {
         </button>
       </div>
 
-      {/* Scoring cheat sheet */}
-      <div
-        className="transition-all duration-700 ease-out mt-2"
-        style={{
-          opacity: visible ? 1 : 0,
-          transitionDelay: '600ms',
-        }}
-      >
-      </div>
 
-      {/* Inline keyframe animation */}
       <style>{`
         @keyframes fadeInCell {
           from { opacity: 0; transform: scale(0.7); }

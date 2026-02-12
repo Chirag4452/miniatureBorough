@@ -10,7 +10,6 @@ import {
 import type { GameState } from '../../shared/types/game';
 import { TOTAL_TURNS } from '../../shared/types/game';
 
-// Single daily RNG: rocks consume first, then turn options
 const DAILY_RNG = createDailyRng();
 const INITIAL_GRID = createInitialGrid(DAILY_RNG);
 const ALL_TURN_OPTIONS = generateAllTurnOptions(DAILY_RNG);

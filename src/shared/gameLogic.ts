@@ -15,12 +15,8 @@ function randomPlaceable(rng: () => number, allowCastle: boolean): PlaceableTile
   return PLACEABLE_WITHOUT_CASTLE[i] ?? 'mountain';
 }
 
-/**
- * Pre-generate all tile options for the entire game (10 turns).
- * Castle appears exactly once in one of the 20 current-option slots (2 per turn × 10).
- */
 export function generateAllTurnOptions(rng: () => number): TurnOptions[] {
-  const castleSlot = Math.floor(rng() * (TOTAL_TURNS * 2)); // 0..19
+  const castleSlot = Math.floor(rng() * (TOTAL_TURNS * 2));
   const options: TurnOptions[] = [];
 
   for (let t = 0; t < TOTAL_TURNS; t++) {
@@ -59,12 +55,10 @@ export function generateAllTurnOptions(rng: () => number): TurnOptions[] {
   return options;
 }
 
-/** Create 6×6 grid with 1–2 pre-placed rocks. */
 export function createInitialGrid(rng: () => number): Grid {
   const grid: Grid = Array.from({ length: GRID_SIZE }, () =>
     Array.from({ length: GRID_SIZE }, (): CellTile => 'grass')
   );
-  // Place 1 or 2 rocks randomly
   const rockCount = rng() < 0.5 ? 1 : 2;
   let placed = 0;
   while (placed < rockCount) {
@@ -77,8 +71,6 @@ export function createInitialGrid(rng: () => number): Grid {
   }
   return grid;
 }
-
-// --- Scoring: helpers ---
 
 const ORTH: [number, number][] = [
   [-1, 0],
@@ -117,7 +109,6 @@ function getNearbyCells(_grid: Grid, r: number, c: number): [number, number][] {
   return out;
 }
 
-/** Orthogonally adjacent? */
 function isAdjacent(r: number, c: number, tr: number, tc: number): boolean {
   return (Math.abs(r - tr) === 1 && c === tc) || (r === tr && Math.abs(c - tc) === 1);
 }
@@ -143,9 +134,6 @@ function shortestGrassPath(grid: Grid, sr: number, sc: number, tr: number, tc: n
   return -1;
 }
 
-/**
- * Compute total score from the full grid.
- */
 export function computeScore(grid: Grid): number {
   let total = 0;
 
@@ -176,7 +164,6 @@ export function computeScore(grid: Grid): number {
       }
 
       if (cell === 'castle') {
-        // Find nearest house by BFS over grass-only path; score = path length in grass tiles.
         let bestPath = -1;
         for (let hr = 0; hr < GRID_SIZE; hr++) {
           for (let hc = 0; hc < GRID_SIZE; hc++) {
@@ -204,9 +191,6 @@ export function computeScore(grid: Grid): number {
   return total;
 }
 
-/**
- * Check if (row, col) is valid for the given constraint (only grass cells in that row/column).
- */
 export function isValidPlacement(
   grid: Grid,
   row: number,
@@ -214,13 +198,10 @@ export function isValidPlacement(
   constraint: PlacementConstraint
 ): boolean {
   if (grid[row]?.[col] !== 'grass') return false;
-  if (constraint.kind === 'row') return constraint.index === row + 1; // 1-based
+  if (constraint.kind === 'row') return constraint.index === row + 1;
   return constraint.index === col + 1;
 }
 
-/**
- * Get all valid [row, col] positions for the given constraint.
- */
 export function getValidPositions(grid: Grid, constraint: PlacementConstraint): [number, number][] {
   const out: [number, number][] = [];
   if (constraint.kind === 'row') {
