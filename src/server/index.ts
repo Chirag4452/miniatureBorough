@@ -53,6 +53,8 @@ router.post('/api/daily-attempt', async (req, res): Promise<void> => {
 
     const next_attempts = attempts_used + 1;
     await redis.set(key, JSON.stringify({ attempts_used: next_attempts, max_score }));
+    const THIRTY_DAYS_SEC = 30 * 24 * 60 * 60;
+    await redis.expire(key, THIRTY_DAYS_SEC);
 
     res.json({ attempts_used: next_attempts, max_score });
   } catch (e) {

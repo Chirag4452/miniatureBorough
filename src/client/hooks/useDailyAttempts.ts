@@ -5,8 +5,8 @@ export type DailyStatus = {
   max_score: number;
 };
 
-const DAILY_STATUS_URL = '/api/daily-status';
-const DAILY_ATTEMPT_URL = '/api/daily-attempt';
+const DAILY_STATUS_URL = '/my/api/daily-status';
+const DAILY_ATTEMPT_URL = '/my/api/daily-attempt';
 
 export function useDailyAttempts(): {
   attempts_used: number;
