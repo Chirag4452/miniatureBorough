@@ -277,7 +277,7 @@ export const App = () => {
 
         {no_attempts_left && (
           <p className="text-center text-amber-200 font-medium">
-            No attempts left today. Best: {max_score}pts
+            No attempts left on this post. Best: {max_score}pts
           </p>
         )}
 
