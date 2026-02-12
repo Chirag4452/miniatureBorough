@@ -281,11 +281,12 @@ export const App = () => {
           </p>
         )}
 
-        {state.phase === 'playing' && !no_attempts_left && state.turn < TOTAL_TURNS - 1 && state.nextOptions && (
-          <section className="w-full max-w-md mx-auto" aria-label="Next turn preview">
-            <NextTilePreview options={state.nextOptions} />
-          </section>
-        )}
+        <section
+          className={clsx('w-full max-w-md mx-auto', !(state.phase === 'playing' && !no_attempts_left && state.turn < TOTAL_TURNS - 1 && state.nextOptions) && 'invisible')}
+          aria-label="Next turn preview"
+        >
+          {state.nextOptions && <NextTilePreview options={state.nextOptions} />}
+        </section>
 
         <section className="w-full max-w-md min-h-[40px] flex flex-col justify-center mx-auto" aria-label={state.phase === 'playing' ? 'Current tile options' : 'Game result'}>
           {no_attempts_left ? (
