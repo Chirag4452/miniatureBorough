@@ -2,7 +2,7 @@
 export type PlaceableTile = 'mountain' | 'tree' | 'farm' | 'castle' | 'house';
 
 /** Cell content: either Grass (implicit) or a placed tile. */
-export type CellTile = PlaceableTile | 'grass';
+export type CellTile = PlaceableTile | 'grass' | 'rock';
 
 export const TILE_EMOJI: Record<CellTile, string> = {
   mountain: '⛰️',
@@ -11,6 +11,7 @@ export const TILE_EMOJI: Record<CellTile, string> = {
   castle: '🏰',
   house: '🏠',
   grass: '🟩',
+  rock: '🪨',
 };
 
 /** Constraint: tile can only be placed in this row (1–6) or this column (1–6). */

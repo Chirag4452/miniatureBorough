@@ -8,6 +8,20 @@ import {
 } from '../../shared/types/game';
 import { clsx } from 'clsx';
 
+/** Renders a tile visual – uses images for tree/rock/mountain, emoji for everything else. */
+function TileIcon({ tile, className }: { tile: CellTile; className?: string }) {
+  if (tile === 'tree') {
+    return <img src="/tree2.png" alt="tree" className={clsx('inline-block w-6 h-6', className)} />;
+  }
+  if (tile === 'rock') {
+    return <img src="/rock.png" alt="rock" className={clsx('inline-block w-6 h-6', className)} />;
+  }
+  if (tile === 'mountain') {
+    return <img src="/mountain.png" alt="mountain" className={clsx('inline-block w-6 h-6', className)} />;
+  }
+  return <span className={className} role="img" aria-label={tile}>{TILE_EMOJI[tile]}</span>;
+}
+
 function RulesSection() {
   return (
     <div className="flex flex-nowrap items-start justify-between gap-4 text-sm">
@@ -16,7 +30,7 @@ function RulesSection() {
           <span role="img" aria-hidden>⛰️</span> 1pt for each nearby 🌲.
         </li>
         <li>
-          <span role="img" aria-hidden>🌲</span> 1pt for each touching 🌲.
+          <span role="img" aria-hidden></span> 1pt for each touching .
         </li>
         <li>
           <span role="img" aria-hidden>🌾</span> 1pt for each touching 🟩.
@@ -119,9 +133,7 @@ function CurrentTileOption({
       )}
     >
       <PlacementIndicator constraint={option.constraint} isColumn={isColumn} />
-      <span className="text-xl" role="img" aria-label={option.tile}>
-        {TILE_EMOJI[option.tile as CellTile]}
-      </span>
+      <TileIcon tile={option.tile as CellTile} className="text-xl" />
     </button>
   );
 }
@@ -233,7 +245,9 @@ export const App = () => {
                       'relative flex items-center justify-center rounded-md min-w-[40px] min-h-[40px] text-2xl transition-all touch-manipulation',
                       cell === 'grass'
                         ? 'bg-green-700/80 hover:bg-green-600/90'
-                        : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
+                        : cell === 'rock'
+                          ? 'bg-green-500/70 cursor-default'
+                          : 'bg-[var(--color-surface)] border border-[var(--color-border)]',
                       isValid && 'ring-2 ring-amber-400 ring-offset-1 ring-offset-[var(--color-bg)]',
                       !isValid && selectedOption && cell === 'grass' && 'opacity-50'
                     )}
@@ -246,14 +260,10 @@ export const App = () => {
                     aria-label={`Cell ${r + 1},${c + 1} ${cell}`}
                   >
                     {showGhost && selectedOption ? (
-                      <span className="opacity-70" role="img">
-                        {TILE_EMOJI[selectedOption.tile as CellTile]}
-                      </span>
+                      <TileIcon tile={selectedOption.tile as CellTile} className="opacity-70" />
                     ) : (
                       cell !== 'grass' ? (
-                        <span role="img" aria-label={cell}>
-                          {TILE_EMOJI[cell]}
-                        </span>
+                        <TileIcon tile={cell} />
                       ) : null
                     )}
                   </button>

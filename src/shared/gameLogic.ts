@@ -1,9 +1,11 @@
-import type { PlaceableTile, TileOption, TurnOptions, Grid, PlacementConstraint } from './types/game';
-import {
-  GRID_SIZE,
-  TOTAL_TURNS,
-  type CellTile,
+import type {
+  PlaceableTile,
+  TileOption,
+  TurnOptions,
+  Grid,
+  PlacementConstraint,
 } from './types/game';
+import { GRID_SIZE, TOTAL_TURNS, type CellTile } from './types/game';
 
 const PLACEABLE_WITHOUT_CASTLE: PlaceableTile[] = ['mountain', 'tree', 'farm', 'house'];
 
@@ -31,11 +33,15 @@ export function generateAllTurnOptions(rng: () => number): TurnOptions[] {
     const firstIsRow = rng() < 0.5;
     const optA: TileOption = {
       tile: tileA,
-      constraint: firstIsRow ? { kind: 'row', index: rowIndex } : { kind: 'column', index: colIndex },
+      constraint: firstIsRow
+        ? { kind: 'row', index: rowIndex }
+        : { kind: 'column', index: colIndex },
     };
     const optB: TileOption = {
       tile: tileB,
-      constraint: firstIsRow ? { kind: 'column', index: colIndex } : { kind: 'row', index: rowIndex },
+      constraint: firstIsRow
+        ? { kind: 'column', index: colIndex }
+        : { kind: 'row', index: rowIndex },
     };
     const current: [TileOption, TileOption] = [optA, optB];
     options.push({
@@ -53,11 +59,23 @@ export function generateAllTurnOptions(rng: () => number): TurnOptions[] {
   return options;
 }
 
-/** Create empty 6×6 grid (all grass). */
-export function createEmptyGrid(): Grid {
-  return Array.from({ length: GRID_SIZE }, () =>
+/** Create 6×6 grid with 1–2 pre-placed rocks. */
+export function createInitialGrid(rng: () => number): Grid {
+  const grid: Grid = Array.from({ length: GRID_SIZE }, () =>
     Array.from({ length: GRID_SIZE }, (): CellTile => 'grass')
   );
+  // Place 1 or 2 rocks randomly
+  const rockCount = rng() < 0.5 ? 1 : 2;
+  let placed = 0;
+  while (placed < rockCount) {
+    const r = Math.floor(rng() * GRID_SIZE);
+    const c = Math.floor(rng() * GRID_SIZE);
+    if (grid[r]![c] === 'grass') {
+      grid[r]![c] = 'rock';
+      placed++;
+    }
+  }
+  return grid;
 }
 
 // --- Scoring: helpers ---
@@ -69,9 +87,14 @@ const ORTH: [number, number][] = [
   [0, 1],
 ];
 const NEARBY_DELTAS: [number, number][] = [
-  [-1, -1], [-1, 0], [-1, 1],
-  [0, -1],          [0, 1],
-  [1, -1],  [1, 0], [1, 1],
+  [-1, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, -1],
+  [0, 1],
+  [1, -1],
+  [1, 0],
+  [1, 1],
 ];
 
 function getOrthogonalNeighbors(_grid: Grid, r: number, c: number): [number, number][] {
@@ -129,7 +152,7 @@ export function computeScore(grid: Grid): number {
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
       const cell = grid[r]?.[c];
-      if (cell === undefined || cell === 'grass') continue;
+      if (cell === undefined || cell === 'grass' || cell === 'rock') continue;
 
       if (cell === 'mountain') {
         const nearby = getNearbyCells(grid, r, c);
@@ -198,10 +221,7 @@ export function isValidPlacement(
 /**
  * Get all valid [row, col] positions for the given constraint.
  */
-export function getValidPositions(
-  grid: Grid,
-  constraint: PlacementConstraint
-): [number, number][] {
+export function getValidPositions(grid: Grid, constraint: PlacementConstraint): [number, number][] {
   const out: [number, number][] = [];
   if (constraint.kind === 'row') {
     const r = constraint.index - 1;
