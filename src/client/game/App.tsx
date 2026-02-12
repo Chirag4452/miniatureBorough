@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useGame } from '../hooks/useGame';
 import {
   TILE_EMOJI,
@@ -139,8 +139,6 @@ function CurrentTileOption({
 }
 
 export const App = () => {
-  const [show_rules, set_show_rules] = useState(false);
-
   const {
     state,
     selectTile,
@@ -148,6 +146,7 @@ export const App = () => {
     placeTile,
     getValidPositions,
     isValidPlacement: checkValid,
+    utcDate,
   } = useGame();
 
   const selectedOption =
@@ -186,6 +185,9 @@ export const App = () => {
       <header className="content-panel relative flex flex-col gap-3">
         <div className="flex items-center justify-center">
           <h1 className="text-lg font-bold tracking-tight">Miniature Borough</h1>
+          <span className="absolute right-3 text-sm text-[var(--color-text-muted)]" title="UTC date (daily puzzle)">
+            {utcDate}
+          </span>
         </div>
         <RulesSection />
 
