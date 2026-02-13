@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePostId } from '../hooks/usePostId';
 import { useGame } from '../hooks/useGame';
 import { useDailyAttempts } from '../hooks/useDailyAttempts';
 import {
@@ -203,6 +204,7 @@ function NextTilePreview({ options }: { options: [TileOption, TileOption] }) {
 }
 
 export const App = () => {
+  const { post_id, loading: post_id_loading } = usePostId();
   const {
     state,
     selectTile,
@@ -210,13 +212,18 @@ export const App = () => {
     placeTile,
     getValidPositions,
     isValidPlacement: checkValid,
-  } = useGame();
+  } = useGame(post_id);
 
-  const { attempts_used, max_score, loading, record_attempt } = useDailyAttempts();
+  const { attempts_used, max_score, loading: attempts_loading, record_attempt } = useDailyAttempts(post_id);
+  const loading = post_id_loading || attempts_loading;
   const no_attempts_left = attempts_used >= DAILY_ATTEMPTS_MAX;
   const recorded_this_game = useRef(false);
 
   const [rules_open, set_rules_open] = useState(false);
+
+  useEffect(() => {
+    recorded_this_game.current = false;
+  }, [post_id]);
 
   useEffect(() => {
     if (state.phase !== 'ended' || recorded_this_game.current) return;
@@ -254,6 +261,14 @@ export const App = () => {
   );
 
   const handleCellLeave = useCallback(() => setHoverCell(null), [setHoverCell]);
+
+  if (post_id_loading) {
+    return (
+      <div className="bg-pattern min-h-screen flex items-center justify-center text-[var(--color-text)]">
+        <p className="text-white/80">Loading puzzle…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-pattern min-h-screen flex flex-col text-[var(--color-text)] transition-colors p-3 gap-3">

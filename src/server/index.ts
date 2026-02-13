@@ -15,9 +15,19 @@ app.use(express.text());
 
 const router = express.Router();
 
-router.get('/api/daily-status', async (_req, res): Promise<void> => {
+router.get('/api/post-id', async (_req, res): Promise<void> => {
   try {
-    const post_id = context.postId ?? 'unknown';
+    res.json({ post_id: context.postId ?? '' });
+  } catch (e) {
+    console.error('post-id error:', e);
+    res.status(500).json({ post_id: '' });
+  }
+});
+
+router.get('/api/daily-status', async (req, res): Promise<void> => {
+  try {
+    const query_post_id = req.query?.post_id;
+    const post_id = (typeof query_post_id === 'string' && query_post_id ? query_post_id : null) ?? context.postId ?? 'unknown';
     const username = await reddit.getCurrentUsername();
     const user = username ?? 'anonymous';
     const key = REDIS_KEY_POST_ATTEMPTS(post_id, user);
@@ -35,11 +45,12 @@ router.get('/api/daily-status', async (_req, res): Promise<void> => {
 
 router.post('/api/daily-attempt', async (req, res): Promise<void> => {
   try {
-    const post_id = context.postId ?? 'unknown';
+    const body = (req.body ?? {}) as { score?: number; post_id?: string };
+    const post_id = (typeof body.post_id === 'string' && body.post_id ? body.post_id : null) ?? context.postId ?? 'unknown';
     const username = await reddit.getCurrentUsername();
     const user = username ?? 'anonymous';
     const key = REDIS_KEY_POST_ATTEMPTS(post_id, user);
-    const score = Number((req.body as { score?: number }).score) || 0;
+    const score = Number(body.score) || 0;
 
     const raw = await redis.get(key);
     const data = raw ? (JSON.parse(raw) as { attempts_used: number; max_score: number }) : { attempts_used: 0, max_score: 0 };

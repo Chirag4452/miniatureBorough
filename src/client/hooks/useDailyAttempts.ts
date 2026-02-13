@@ -5,10 +5,10 @@ export type DailyStatus = {
   max_score: number;
 };
 
-const DAILY_STATUS_URL = '/my/api/daily-status';
-const DAILY_ATTEMPT_URL = '/my/api/daily-attempt';
+const DAILY_STATUS_URL = '/api/daily-status';
+const DAILY_ATTEMPT_URL = '/api/daily-attempt';
 
-export function useDailyAttempts(): {
+export function useDailyAttempts(post_id: string): {
   attempts_used: number;
   max_score: number;
   loading: boolean;
@@ -21,7 +21,8 @@ export function useDailyAttempts(): {
 
   const refetch = useCallback(async (): Promise<void> => {
     try {
-      const res = await fetch(DAILY_STATUS_URL);
+      const url = post_id ? `${DAILY_STATUS_URL}?post_id=${encodeURIComponent(post_id)}` : DAILY_STATUS_URL;
+      const res = await fetch(url);
       const data = (await res.json()) as DailyStatus;
       set_attempts_used(Number(data.attempts_used) ?? 0);
       set_max_score(Number(data.max_score) ?? 0);
@@ -31,9 +32,10 @@ export function useDailyAttempts(): {
     } finally {
       set_loading(false);
     }
-  }, []);
+  }, [post_id]);
 
   useEffect(() => {
+    set_loading(true);
     void refetch();
   }, [refetch]);
 
@@ -43,14 +45,14 @@ export function useDailyAttempts(): {
         await fetch(DAILY_ATTEMPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ score }),
+          body: JSON.stringify({ score, post_id: post_id || undefined }),
         });
         await refetch();
       } catch {
         await refetch();
       }
     },
-    [refetch]
+    [post_id, refetch]
   );
 
   return { attempts_used, max_score, loading, refetch, record_attempt };

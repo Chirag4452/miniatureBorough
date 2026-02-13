@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { createDailyRng, getUtcDateString } from '../../shared/dailySeed';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPostRng } from '../../shared/dailySeed';
 import {
   createInitialGrid,
   generateAllTurnOptions,
@@ -10,18 +10,26 @@ import {
 import type { GameState } from '../../shared/types/game';
 import { TOTAL_TURNS } from '../../shared/types/game';
 
-const DAILY_RNG = createDailyRng();
-const INITIAL_GRID = createInitialGrid(DAILY_RNG);
-const ALL_TURN_OPTIONS = generateAllTurnOptions(DAILY_RNG);
+type GameConfig = {
+  initial_grid: ReturnType<typeof createInitialGrid>;
+  all_turn_options: ReturnType<typeof generateAllTurnOptions>;
+};
 
-function getInitialState(): GameState {
-  const opts = ALL_TURN_OPTIONS[0];
+function getGameConfig(post_id: string): GameConfig {
+  const rng = createPostRng(post_id);
+  const initial_grid = createInitialGrid(rng);
+  const all_turn_options = generateAllTurnOptions(rng);
+  return { initial_grid, all_turn_options };
+}
+
+function getInitialStateFromConfig(config: GameConfig): GameState {
+  const opts = config.all_turn_options[0];
   if (!opts) throw new Error('Failed to generate turn options');
   return {
-    grid: INITIAL_GRID.map((row) => [...row]),
+    grid: config.initial_grid.map((row) => [...row]),
     turn: 0,
     phase: 'playing',
-    score: computeScore(INITIAL_GRID),
+    score: computeScore(config.initial_grid),
     currentOptions: opts.current,
     nextOptions: opts.next,
     selectedTileIndex: null,
@@ -29,10 +37,17 @@ function getInitialState(): GameState {
   };
 }
 
-export function useGame() {
-  const [state, setState] = useState<GameState>(getInitialState);
+export function useGame(post_id: string) {
+  const seed = post_id || 'default';
+  const config = useMemo(() => getGameConfig(seed), [seed]);
 
-  const allTurnOptions = ALL_TURN_OPTIONS;
+  const [state, setState] = useState<GameState>(() => getInitialStateFromConfig(config));
+
+  const allTurnOptions = config.all_turn_options;
+
+  useEffect(() => {
+    setState(getInitialStateFromConfig(config));
+  }, [config]);
 
   const selectTile = useCallback((index: 0 | 1) => {
     setState((s) => ({
@@ -76,6 +91,7 @@ export function useGame() {
     },
     [allTurnOptions]
   );
+
   return {
     state,
     selectTile,
@@ -84,6 +100,5 @@ export function useGame() {
     allTurnOptions,
     isValidPlacement,
     getValidPositions,
-    utcDate: getUtcDateString(),
   };
 }

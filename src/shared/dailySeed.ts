@@ -30,3 +30,8 @@ export function createDailyRng(): () => number {
   const seed = hashString(date_str);
   return createSeededRng(seed);
 }
+
+export function createPostRng(post_id: string): () => number {
+  const seed = hashString(post_id);
+  return createSeededRng(seed);
+}
